@@ -37,7 +37,8 @@ Administrar o Supabase da organização `VerticalParts` por tools semânticas, c
 - código completo: 33 tools, todas com validação de input e classificação de risco (fixa, exceto `sb_execute_sql`, que é dinâmica — ver `01_RAG` RAG-006A);
 - **homologado contra `api.supabase.com` real**: PAT do operador configurado em `/opt/verticalparts-supabase-mcp/secrets/supabase-access-token` (nunca visto por esta LLM), testes reais de auth/leitura/escrita crítica/reversão/classificação dinâmica de SQL — ver `00_READ_FIRST` seção 5 para o relato completo;
 - **descoberta real**: o PAT enxerga 3 organizações (`VerticalParts`, `VerticalParts (LOW)`, `ESCAMAX`) e 14 projetos — mais do que o conector oficial (escopado, OAuth) mostrava antes de gerar o PAT. Todos os 14 estão em `config/projects.example.yaml` — ver `00_READ_FIRST` seção 6;
-- **ainda não testado**: Edge Functions e branches de desenvolvimento (feature experimental da própria Supabase) — ver `04_SDD` seção 9;
+- Edge Functions homologadas (2026-09-19): ciclo completo criar→ler→atualizar→listar→apagar validado contra a API real, sem tocar a função de produção real já existente no projeto de teste. Um bug real foi corrigido no processo (`sb_deploy_edge_function` usava endpoint inexistente) — ver `00_READ_FIRST` e `04_SDD` T-007;
+- **ainda não testado**: branches de desenvolvimento (feature experimental da própria Supabase) — ver `04_SDD` seção 9;
 - deploy público concluído: `verticalparts-supabase-mcp.service` (systemd, usuário `supabase-mcp`, `127.0.0.1:8022`) atrás de Nginx + TLS (Let's Encrypt, expira 2026-12-18) em `https://supabase-mcp.vpsistema.com/mcp`, protegido por `X-API-Key`;
 - protocolo MCP testado via HTTPS público de verdade: `initialize` (200), `tools/list` (33 tools), auth (401 sem chave / 401 chave errada);
 - conector `VerticalParts Supabase` conectado no claude.ai e testado com `sb_whoami` de verdade (não só via curl/script);

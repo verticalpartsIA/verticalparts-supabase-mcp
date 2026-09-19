@@ -45,6 +45,8 @@ Diferente do github-mcp (`github_app.py`, JWT → installation token com cache/e
 ### 2.4 Supabase client — `supabase_client.py`
 Wrapper semântico sobre a Management API (`https://api.supabase.com/v1`), um método por operação (mesmo idioma do `hostinger.py`/`github_client.py`). Não há retry automático de 401 por expiração (o PAT não expira como um installation token) — um 401 aqui normalmente significa PAT inválido/revogado, e deve ser reportado como tal, não silenciosamente re-tentado.
 
+**Bug real encontrado e corrigido (2026-09-19)**: `deploy_edge_function` inicialmente chamava `POST /projects/{ref}/functions/{slug}/deploy`, endpoint inexistente (`404`). Contrato real confirmado por teste: `POST /projects/{ref}/functions` (`slug` no corpo) para criar, `PATCH /projects/{ref}/functions/{slug}` para atualizar, ambos com `{"body": "<código-fonte Deno>"}` como campo central (não `"files"`/`"entrypoint_path"` como assumido inicialmente). Corrigido no commit `f8d0261`: o método agora faz um `GET` para checar existência e decide `POST` vs `PATCH`.
+
 Introspecção de banco (`list_tables`, `list_extensions`, `list_migrations`) é implementada como instruções SQL somente-leitura contra `pg_catalog`/`information_schema`/`supabase_migrations.schema_migrations`, enviadas via `POST /v1/projects/{ref}/database/query` — a Management API não expõe um endpoint REST dedicado para "listar tabelas" fora de SQL, mesma abordagem usada pelo servidor oficial da Supabase.
 
 `apply_migration` usa `POST /v1/projects/{ref}/database/migrations` (fica rastreado no histórico de migrações do Supabase); `execute_sql` usa `POST /v1/projects/{ref}/database/query` (não fica rastreado como migração — ver `03_INSTRUCTIONS` seção 8 sobre quando usar cada um).
@@ -165,6 +167,10 @@ Mitigação: descoberta obrigatória antes de mutar, `config/projects.yaml` para
 Risco: `sb_create_project`/`sb_restore_project` geram cobrança em plano pago sem o operador perceber.
 Mitigação: `03_INSTRUCTIONS` seção 7 exige mostrar `sb_get_cost` antes de `CONFIRMO` quando disponível.
 
+### T-007 — Endpoint de tool nova assumido sem confirmação contra a API real
+Risco: uma tool nova (não coberta pela homologação inicial) usa um path/formato de request inferido por analogia em vez de confirmado — como aconteceu com `sb_deploy_edge_function` (ver seção 2.4).
+Mitigação: erro visível (404/400) é o sintoma esperado quando isso acontece, não um comportamento inseguro — mas nenhuma tool deve ser declarada "homologada" em `00_READ_FIRST` sem teste real. Ver `01_RAG` RAG-008A para a lição registrada.
+
 ### T-006 — Branching tratado como maduro sem ter sido homologado
 Risco: LLM promete/assume comportamento de `sb_create_branch`/`sb_merge_branch`/etc. sem esses endpoints terem sido validados contra a API real (são feature paga/experimental da própria Supabase, endpoints menos estáveis que o resto da Management API).
 Mitigação: seção 9 abaixo marca branching como não homologado até teste real; `03_INSTRUCTIONS` seção 9 instrui a LLM a avisar o operador antes do primeiro uso em uma sessão.
@@ -181,7 +187,9 @@ Implementado e **homologado contra a API real** (`api.supabase.com`, PAT do oper
 
 **Deploy público concluído e homologado** (2026-09-19): `verticalparts-supabase-mcp.service` (systemd, usuário `supabase-mcp`, `127.0.0.1:8022`) atrás de Nginx + TLS (Let's Encrypt) em `https://supabase-mcp.vpsistema.com/mcp`. Protocolo MCP validado via HTTPS público real: sem `X-API-Key` → 401; com chave errada → 401; `initialize` com chave certa → 200 (`serverInfo.name="VerticalParts Supabase"`); `notifications/initialized` → 202; `tools/list` → 33 tools, sem duplicidade.
 
-**Ainda não testado contra API real**: Edge Functions (`sb_list_edge_functions`/`sb_deploy_edge_function`/etc.) e branches de desenvolvimento (`sb_create_branch`/`sb_merge_branch`/etc.) — só as tools de organização/projeto/banco de dados foram exercitadas na homologação de 2026-09-19.
+**Edge Functions homologadas (2026-09-19)**: `sb_list_edge_functions` → `sb_deploy_edge_function` (criar) → `sb_get_edge_function` → `sb_deploy_edge_function` de novo (atualizar, versão 1→2) → `sb_list_edge_functions` (função de teste ao lado da função de produção real, intacta) → `sb_delete_edge_function` com `CONFIRMO_DESTRUTIVO` → validação final. Um bug real foi encontrado e corrigido no processo — ver seção 2.4 e T-007 abaixo.
+
+**Ainda não testado contra API real**: branches de desenvolvimento (`sb_create_branch`/`sb_merge_branch`/etc.) — ver seção 9.
 
 Risco adicional identificado antes mesmo da implementação (honestidade arquitetural, não suposição otimista): os endpoints exatos de branching (`/v1/branches/...` vs. `/v1/projects/{ref}/branches/...`, nomes exatos de sub-recursos para merge/reset/rebase) foram inferidos a partir da documentação pública e do comportamento das tools do conector oficial, **não confirmados linha a linha contra a especificação OpenAPI da Management API** — isso continua valendo, já que essa parte do catálogo não foi tocada na homologação real. Tratar como próxima prioridade de teste real antes de declarar essa parte do catálogo homologada — se os paths estiverem errados, o sintoma esperado é 404, não um comportamento inseguro.
 

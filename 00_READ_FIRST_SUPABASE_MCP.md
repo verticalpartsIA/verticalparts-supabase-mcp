@@ -74,7 +74,9 @@ Evidência de homologação do protocolo MCP em si (via HTTPS público, requisi�
 
 Isso fecha todos os critérios de aceite da PARTE I do runbook para a parte de deploy/protocolo. A homologação funcional (chamadas reais de organização/projeto/banco de dados, seção acima) já tinha sido feita antes do deploy, contra o mesmo código, via stdio local na VPS.
 
-**Conector real conectado e testado (2026-09-19)**: o operador conectou `VerticalParts Supabase` no claude.ai (Settings → Connectors, header `X-API-Key`) e `sb_whoami` foi chamado através desse conector de verdade (não via `curl`/script) — retornou as mesmas 3 organizações da homologação anterior. Isso fecha o último item não-bloqueante da seção 7 ("conectar num cliente MCP real e validar por ali").
+**Conector real conectado e testado (2026-09-19)**: o operador conectou `VerticalParts Supabase` no claude.ai (Settings → Connectors, header `X-API-Key`) e `sb_whoami` foi chamado através desse conector de verdade (não via `curl`/script) — retornou as mesmas 3 organizações da homologação anterior.
+
+**Bug real encontrado e corrigido na homologação de Edge Functions (2026-09-19)**: `sb_deploy_edge_function` originalmente chamava `POST /projects/{ref}/functions/{slug}/deploy`, endpoint que **não existe** na Management API (`404 Cannot POST`) — erro visível, não um comportamento inseguro. Investigação contra a API real (no projeto de baixa criticidade `VISITAS E BRINDES`) revelou o contrato correto: **criar** é `POST /projects/{ref}/functions` com `{"slug", "name", "verify_jwt", "body": "<código-fonte Deno>"}`; **atualizar** é `PATCH /projects/{ref}/functions/{slug}` com `{"body": "..."}`. Corrigido em `supabase_client.py` (commit `f8d0261`): `deploy_edge_function` agora verifica existência via `GET` e decide criar ou atualizar. Homologado depois da correção: ciclo completo `sb_deploy_edge_function` (criar v1) → `sb_get_edge_function` → `sb_deploy_edge_function` de novo (atualizar, versão 1→2 confirmada) → `sb_list_edge_functions` (mostrando a função de teste ao lado da função de produção real `send-kit-request-email`, sem tocá-la) → `sb_delete_edge_function` com `CONFIRMO_DESTRUTIVO` → validação final de que só a função de teste sumiu. Gating de confirmação (`CONFIRMO`/`CONFIRMO_DESTRUTIVO`) validado em cada etapa.
 
 ## 6. Projetos conhecidos (ver `config/projects.example.yaml` para o registro completo)
 
@@ -101,7 +103,7 @@ Isso fecha todos os critérios de aceite da PARTE I do runbook para a parte de d
 
 Tudo que era pré-requisito para produção está feito: homologação funcional real (auth, leitura, escrita crítica com confirmação, classificação dinâmica de risco de SQL, ciclo completo criar→validar→reverter), deploy público com protocolo MCP validado via HTTPS real, e conector real conectado e testado no claude.ai (ver seções 5 e a evidência logo acima). Itens que ficam para depois:
 
-1. Homologação de Edge Functions (`sb_deploy_edge_function`/`sb_list_edge_functions`/etc.) — ainda não testado contra a API real, só as tools de projeto/organização/banco de dados foram.
+1. ~~Homologação de Edge Functions~~ — feita em 2026-09-19, ver evidência abaixo.
 2. Verificação honesta de quais tools de branching realmente respondem como documentado (branching é uma feature experimental/paga da própria Supabase — ver `04_SDD` seção 9) — não testado ainda.
 3. Rotacionar o Personal Access Token periodicamente (`05_RUNBOOK` PARTE F) — prioridade mais alta que no github-mcp, ver `01_RAG` RAG-003A.
 

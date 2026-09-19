@@ -108,6 +108,10 @@ Os demais 11 projetos têm criticidade **inferida do nome apenas**, não confirm
 
 `VISITAS E BRINDES` (`bvvnoapdclxhuygptbza`) foi o projeto usado para a homologação real de 2026-09-19 (criar/validar/apagar uma tabela de teste) — está limpo, sem resíduo, mas é o projeto de referência para qualquer novo teste futuro por já ter esse histórico.
 
+## RAG-008A — Lição: não confiar em formato de endpoint não testado contra a API real
+
+`sb_deploy_edge_function` foi implementado inicialmente com um endpoint que **não existe** (`POST /projects/{ref}/functions/{slug}/deploy`, inferido de padrões genéricos de "deploy", nunca confirmado contra a especificação real) — deu `404` visível na primeira homologação real (2026-09-19), não um comportamento inseguro, mas ainda assim um bug. O contrato real é: `POST /projects/{ref}/functions` (criar, `slug` no corpo não na URL) com `{"slug", "name", "verify_jwt", "body": "<código-fonte>"}`; `PATCH /projects/{ref}/functions/{slug}` (atualizar) com `{"body": "..."}`. Lição para qualquer tool nova deste MCP (e already registrada para branching em `04_SDD` seção 9): **nunca** declarar uma tool homologada, nem assumir que o formato de request "faz sentido", sem testar contra `api.supabase.com` de verdade — erro visível (404) é aceitável como achado de homologação, comportamento silenciosamente incorreto não é.
+
 ## RAG-009 — Anti-padrões
 
 Nunca como padrão:
