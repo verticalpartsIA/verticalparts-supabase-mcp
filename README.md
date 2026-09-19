@@ -2,7 +2,7 @@
 
 MCP corporativo para administração do Supabase da VerticalParts por LLMs — organizações, projetos, banco de dados (tabelas, extensões, migrações, SQL), branches de desenvolvimento e Edge Functions — com confirmação proporcional ao risco, auditoria e autenticação via Personal Access Token dedicado.
 
-Status: **homologado contra a API real do Supabase**. Código completo (33 tools), testado de ponta a ponta contra `api.supabase.com` com o Personal Access Token do operador: autenticação, leitura, escrita crítica com confirmação, classificação dinâmica de risco de `sb_execute_sql`, e um ciclo real criar→validar→reverter (tabela de teste em projeto de baixa criticidade, sem resíduo). A homologação revelou que o PAT enxerga **3 organizações** e **14 projetos** — mais do que o conector Supabase oficial mostrava antes disso. Falta o deploy público (systemd + Nginx) e testar Edge Functions/branches contra a API real. Ver `00_READ_FIRST_SUPABASE_MCP.md` seção 5 para o relato completo.
+Status: **homologado em produção**. Endpoint público no ar em `https://supabase-mcp.vpsistema.com/mcp` (Nginx + TLS + X-API-Key), serviço systemd `verticalparts-supabase-mcp.service`. Código completo (33 tools), testado de ponta a ponta contra `api.supabase.com` com o Personal Access Token do operador: autenticação, leitura, escrita crítica com confirmação, classificação dinâmica de risco de `sb_execute_sql`, um ciclo real criar→validar→reverter (tabela de teste em projeto de baixa criticidade, sem resíduo), e o protocolo MCP em si testado via HTTPS público real (`initialize`, `tools/list` com as 33 tools, auth 401/200). A homologação revelou que o PAT enxerga **3 organizações** e **14 projetos** — mais do que o conector Supabase oficial mostrava antes disso. Falta testar Edge Functions/branches contra a API real. Ver `00_READ_FIRST_SUPABASE_MCP.md` seções 5 e 7 para o relato completo.
 
 Este projeto é o terceiro de uma família de MCPs administrativos da VerticalParts. Os outros dois, já homologados em produção, são [`verticalparts-infrastructure-mcp`](https://github.com/verticalpartsIA/verticalparts-infrastructure-mcp) (VPS + Hostinger) e [`verticalparts-github-mcp`](https://github.com/verticalpartsIA/verticalparts-github-mcp) (GitHub) — mesma filosofia de governança, mesmo padrão de código.
 
@@ -88,7 +88,7 @@ verticalparts-supabase-mcp
 
 ## Claude
 
-Conector (planejado, ver `00_READ_FIRST` seção 7 para o que falta antes de publicar):
+Conector (já homologado, pronto para uso):
 
 Nome: VerticalParts Supabase
 URL: `https://supabase-mcp.vpsistema.com/mcp`

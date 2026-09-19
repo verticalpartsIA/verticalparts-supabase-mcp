@@ -27,11 +27,11 @@ O VerticalParts Supabase MCP transforma intenção operacional sobre o Supabase 
 ## RAG-003 — Topologia
 
 Supabase MCP:
-- rodando (quando implantado): serviço dedicado na VPS, usuário de serviço `supabase-mcp`;
-- endpoint público planejado: `https://supabase-mcp.vpsistema.com/mcp`;
+- rodando em produção: serviço dedicado na VPS, usuário de serviço `supabase-mcp`;
+- endpoint público ativo: `https://supabase-mcp.vpsistema.com/mcp` (Nginx + TLS Let's Encrypt, expira 2026-12-18);
 - transporte: Streamable HTTP;
 - autenticação pública: X-API-Key no gateway/Nginx;
-- bind interno planejado: `127.0.0.1:8022` (próxima porta livre depois de `8020` infra-mcp e `8021` github-mcp);
+- bind interno: `127.0.0.1:8022` (depois de `8020` infra-mcp e `8021` github-mcp);
 - serviço: `verticalparts-supabase-mcp.service`;
 - autenticação com o Supabase: Management API (`https://api.supabase.com/v1`) via Personal Access Token (PAT), não via app/instalação — ver RAG-003A.
 

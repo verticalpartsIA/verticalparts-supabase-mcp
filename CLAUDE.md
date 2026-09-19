@@ -1,7 +1,7 @@
 # CLAUDE.md — VerticalParts Supabase MCP
 
 Versão operacional: 2026-09-19
-Status: **homologado contra a API real do Supabase** — auth, leitura, escrita crítica com confirmação, classificação dinâmica de risco de SQL e ciclo completo criar→validar→reverter, todos testados contra `api.supabase.com` de verdade. Falta deploy público (systemd+Nginx) e homologação de Edge Functions/branches. Ver `00_READ_FIRST` seção 5 para o relato completo.
+Status: **homologado em produção** — endpoint público ativo em `https://supabase-mcp.vpsistema.com/mcp`. Validado com auth, leitura, escrita crítica com confirmação, classificação dinâmica de risco de SQL, ciclo completo criar→validar→reverter, e o protocolo MCP em si (initialize/tools/list via HTTPS real), tudo contra a API real do Supabase. Falta homologar Edge Functions/branches. Ver `00_READ_FIRST` seções 5 e 7 para o relato completo.
 
 ## Leitura obrigatória
 
@@ -38,7 +38,8 @@ Administrar o Supabase da organização `VerticalParts` por tools semânticas, c
 - **homologado contra `api.supabase.com` real**: PAT do operador configurado em `/opt/verticalparts-supabase-mcp/secrets/supabase-access-token` (nunca visto por esta LLM), testes reais de auth/leitura/escrita crítica/reversão/classificação dinâmica de SQL — ver `00_READ_FIRST` seção 5 para o relato completo;
 - **descoberta real**: o PAT enxerga 3 organizações (`VerticalParts`, `VerticalParts (LOW)`, `ESCAMAX`) e 14 projetos — mais do que o conector oficial (escopado, OAuth) mostrava antes de gerar o PAT. Todos os 14 estão em `config/projects.example.yaml` — ver `00_READ_FIRST` seção 6;
 - **ainda não testado**: Edge Functions e branches de desenvolvimento (feature experimental da própria Supabase) — ver `04_SDD` seção 9;
-- deploy público planejado, não realizado: `verticalparts-supabase-mcp.service` (systemd, usuário `supabase-mcp`, `127.0.0.1:8022`) atrás de Nginx + TLS em `https://supabase-mcp.vpsistema.com/mcp`;
+- deploy público concluído: `verticalparts-supabase-mcp.service` (systemd, usuário `supabase-mcp`, `127.0.0.1:8022`) atrás de Nginx + TLS (Let's Encrypt, expira 2026-12-18) em `https://supabase-mcp.vpsistema.com/mcp`, protegido por `X-API-Key`;
+- protocolo MCP testado via HTTPS público de verdade: `initialize` (200), `tools/list` (33 tools), auth (401 sem chave / 401 chave errada);
 - break-glass (`sb_api_call` para métodos != GET) desabilitado por padrão (`SUPABASE_ALLOW_BREAK_GLASS=false`).
 
 ## Nota de topologia: autenticação por PAT, não por app/instalação
