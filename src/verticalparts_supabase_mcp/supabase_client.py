@@ -166,7 +166,24 @@ class SupabaseClient:
         return await self.request_ok("GET", f"/projects/{ref}/functions/{slug}")
 
     async def deploy_edge_function(self, ref: str, slug: str, body: dict[str, Any]) -> Any:
-        return await self.request_ok("POST", f"/projects/{ref}/functions/{slug}/deploy", json=body)
+        # Contrato real da Management API (confirmado por teste contra api.supabase.com em
+        # 2026-09-19 — não existe /functions/{slug}/deploy, isso retorna 404):
+        #   criar:    POST /projects/{ref}/functions   {"slug", "name", "verify_jwt", "body": "<código fonte>"}
+        #   atualizar: PATCH /projects/{ref}/functions/{slug}  {"body": "<código fonte>", ...campos opcionais}
+        # `body` aqui deve conter pelo menos a chave "body" com o código fonte da função.
+        existing = await self.request("GET", f"/projects/{ref}/functions/{slug}")
+        if existing.status_code == 404:
+            payload = {
+                "slug": slug,
+                "name": body.get("name", slug),
+                "verify_jwt": body.get("verify_jwt", False),
+                "body": body["body"],
+            }
+            return await self.request_ok("POST", f"/projects/{ref}/functions", json=payload)
+        if existing.status_code >= 400:
+            raise RuntimeError(f"Supabase Management API GET /projects/{ref}/functions/{slug} -> {existing.status_code}: {existing.text[:500]}")
+        update_payload = {k: v for k, v in body.items() if k in {"body", "name", "verify_jwt", "import_map"}}
+        return await self.request_ok("PATCH", f"/projects/{ref}/functions/{slug}", json=update_payload)
 
     async def delete_edge_function(self, ref: str, slug: str) -> Any:
         return await self.request_ok("DELETE", f"/projects/{ref}/functions/{slug}")

@@ -334,7 +334,7 @@ async def sb_get_edge_function(ref: str, slug: str) -> Any:
 
 @mcp.tool()
 async def sb_deploy_edge_function(ref: str, slug: str, body_json: str, confirmation: str | None = None) -> Any:
-    """Publica (cria ou atualiza) uma Edge Function. `body_json` no formato esperado pela Management API (entrypoint, arquivos, import_map). Frequentemente tem efeito em produção imediatamente após o deploy. Exige confirmation='CONFIRMO'."""
+    """Publica (cria ou atualiza) uma Edge Function. `body_json` deve conter pelo menos a chave "body" com o código-fonte Deno completo (ex.: '{"body": "Deno.serve(...)"}'), e opcionalmente "name"/"verify_jwt". Frequentemente tem efeito em produção imediatamente após o deploy. Exige confirmation='CONFIRMO'."""
     require_confirmation(Risk.CRITICAL, confirmation)
     r, s = _ref(ref), _slug(slug, field="slug")
     body = json.loads(body_json)
