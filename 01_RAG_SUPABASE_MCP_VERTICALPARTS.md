@@ -35,7 +35,7 @@ Supabase MCP:
 - serviço: `verticalparts-supabase-mcp.service`;
 - autenticação com o Supabase: Management API (`https://api.supabase.com/v1`) via Personal Access Token (PAT), não via app/instalação — ver RAG-003A.
 
-Organização administrada: `VerticalParts` (id/slug `cdcqhcogckjfttevtoev`), 11 projetos em 2026-09-19 (ver `00_READ_FIRST` seção 6 e `config/projects.example.yaml` para a lista real e atual — não copiar essa contagem para o futuro sem reconferir via `sb_list_projects`).
+Organizações administradas (confirmado via `sb_list_organizations` real em 2026-09-19 — não é só `VerticalParts`): `VerticalParts` (`cdcqhcogckjfttevtoev`), `VerticalParts (LOW)` (`hbxwejjlgxxhxzaksnvm`) e `ESCAMAX` (`tfxgxfybhxtpqyxtdyhu`). 14 projetos ao todo em 2026-09-19 (ver `00_READ_FIRST` seção 6 e `config/projects.example.yaml` para a lista real e atual — não copiar essa contagem para o futuro sem reconferir via `sb_list_projects`).
 
 ## RAG-003A — Autenticação do Supabase é por PAT, não por app/instalação
 
@@ -49,6 +49,8 @@ Implicações práticas para este MCP:
 - o `.env` deste MCP guarda um segredo estruturalmente mais poderoso que o do github-mcp — trate a rotação (`05_RUNBOOK` PARTE F) com mais prioridade, não menos;
 - a **única** camada real de escopo/limite de dano é a governança deste próprio MCP (classificação de risco + confirmação + auditoria) — não existe um "instalar só em projetos X e Y" do lado do Supabase;
 - se o operador perguntar "dá para limitar esse token a um projeto só", a resposta honesta é: não nativamente na Management API — a mitigação é usar `config/projects.yaml` para julgamento de risco e nunca pular a etapa de confirmação, não uma limitação técnica do token em si.
+
+**Confirmado na prática, não só em teoria** (homologação real de 2026-09-19): o PAT gerado pelo operador enxerga **3 organizações** (`VerticalParts`, `VerticalParts (LOW)`, `ESCAMAX`) e 14 projetos — o conector Supabase oficial (OAuth) via o qual esta documentação foi inicialmente escrita só mostrava 1 organização e 11 projetos, porque aquele conector foi autorizado com escopo mais estreito. Isso não é uma inconsistência entre os dois: são dois mecanismos de auth diferentes com blast radius diferente para a mesma conta humana. Antes de operar um projeto de uma organização "nova" (ex.: `ESCAMAX`), confirme com o operador que ela é legítima — ver `01_RAG` RAG-008 e `00_READ_FIRST` seção 6.
 
 ## RAG-004 — Diferença entre este MCP e os conectores Supabase oficiais
 
@@ -100,7 +102,11 @@ Segredo nunca é conteúdo de RAG nem de resposta ao usuário.
 
 `bd_Omie` (`kgecbycsyrtdhmdziuul`): inferido como integração financeira/ERP — tratar como `critical`.
 
-Os demais 8 projetos têm criticidade **inferida do nome apenas**, não confirmada pelo operador — ver `00_READ_FIRST` seção 6. Antes de qualquer operação `CRITICAL`/`DESTRUCTIVE` em um desses, confirme a criticidade real com o operador se `config/projects.yaml` ainda estiver com a inferência original.
+Os demais 11 projetos têm criticidade **inferida do nome apenas**, não confirmada pelo operador — ver `00_READ_FIRST` seção 6. Antes de qualquer operação `CRITICAL`/`DESTRUCTIVE` em um desses, confirme a criticidade real com o operador se `config/projects.yaml` ainda estiver com a inferência original.
+
+`Aprovacao` (`hhgvlcskxopryqvhofsg`) merece atenção redobrada: está na organização `ESCAMAX`, não `VerticalParts` — confirme com o operador que essa organização é legítima antes de qualquer operação crítica/destrutiva ali, não só a criticidade do projeto.
+
+`VISITAS E BRINDES` (`bvvnoapdclxhuygptbza`) foi o projeto usado para a homologação real de 2026-09-19 (criar/validar/apagar uma tabela de teste) — está limpo, sem resíduo, mas é o projeto de referência para qualquer novo teste futuro por já ter esse histórico.
 
 ## RAG-009 — Anti-padrões
 

@@ -1,7 +1,7 @@
 # CLAUDE.md — VerticalParts Supabase MCP
 
 Versão operacional: 2026-09-19
-Status: **scaffolding concluído, pré-homologação** — código completo, PAT do Supabase ainda não gerado/configurado, nenhuma chamada real feita a partir deste código contra `api.supabase.com`.
+Status: **homologado contra a API real do Supabase** — auth, leitura, escrita crítica com confirmação, classificação dinâmica de risco de SQL e ciclo completo criar→validar→reverter, todos testados contra `api.supabase.com` de verdade. Falta deploy público (systemd+Nginx) e homologação de Edge Functions/branches. Ver `00_READ_FIRST` seção 5 para o relato completo.
 
 ## Leitura obrigatória
 
@@ -35,8 +35,9 @@ Administrar o Supabase da organização `VerticalParts` por tools semânticas, c
 ## Estado atual (2026-09-19)
 
 - código completo: 33 tools, todas com validação de input e classificação de risco (fixa, exceto `sb_execute_sql`, que é dinâmica — ver `01_RAG` RAG-006A);
-- organização real confirmada via conector Supabase oficial já presente nesta sessão Claude: `VerticalParts` (`cdcqhcogckjfttevtoev`), 11 projetos reais catalogados em `config/projects.example.yaml` — ver `00_READ_FIRST` seção 5/6;
-- **ainda não homologado contra `api.supabase.com` a partir deste código** — falta gerar o Personal Access Token (`05_RUNBOOK` PARTE A) e rodar os testes reais da PARTE C;
+- **homologado contra `api.supabase.com` real**: PAT do operador configurado em `/opt/verticalparts-supabase-mcp/secrets/supabase-access-token` (nunca visto por esta LLM), testes reais de auth/leitura/escrita crítica/reversão/classificação dinâmica de SQL — ver `00_READ_FIRST` seção 5 para o relato completo;
+- **descoberta real**: o PAT enxerga 3 organizações (`VerticalParts`, `VerticalParts (LOW)`, `ESCAMAX`) e 14 projetos — mais do que o conector oficial (escopado, OAuth) mostrava antes de gerar o PAT. Todos os 14 estão em `config/projects.example.yaml` — ver `00_READ_FIRST` seção 6;
+- **ainda não testado**: Edge Functions e branches de desenvolvimento (feature experimental da própria Supabase) — ver `04_SDD` seção 9;
 - deploy público planejado, não realizado: `verticalparts-supabase-mcp.service` (systemd, usuário `supabase-mcp`, `127.0.0.1:8022`) atrás de Nginx + TLS em `https://supabase-mcp.vpsistema.com/mcp`;
 - break-glass (`sb_api_call` para métodos != GET) desabilitado por padrão (`SUPABASE_ALLOW_BREAK_GLASS=false`).
 

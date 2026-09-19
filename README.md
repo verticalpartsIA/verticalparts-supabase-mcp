@@ -2,7 +2,7 @@
 
 MCP corporativo para administração do Supabase da VerticalParts por LLMs — organizações, projetos, banco de dados (tabelas, extensões, migrações, SQL), branches de desenvolvimento e Edge Functions — com confirmação proporcional ao risco, auditoria e autenticação via Personal Access Token dedicado.
 
-Status: **scaffolding concluído, pré-homologação**. Código completo (33 tools), organização real confirmada (`VerticalParts`, `cdcqhcogckjfttevtoev`, 11 projetos catalogados em `config/projects.example.yaml`), mas nenhuma chamada real contra `api.supabase.com` foi feita ainda a partir deste código — falta gerar o Personal Access Token e rodar a homologação (`05_RUNBOOK` PARTES A–C). Ver `00_READ_FIRST_SUPABASE_MCP.md` para o estado detalhado.
+Status: **homologado contra a API real do Supabase**. Código completo (33 tools), testado de ponta a ponta contra `api.supabase.com` com o Personal Access Token do operador: autenticação, leitura, escrita crítica com confirmação, classificação dinâmica de risco de `sb_execute_sql`, e um ciclo real criar→validar→reverter (tabela de teste em projeto de baixa criticidade, sem resíduo). A homologação revelou que o PAT enxerga **3 organizações** e **14 projetos** — mais do que o conector Supabase oficial mostrava antes disso. Falta o deploy público (systemd + Nginx) e testar Edge Functions/branches contra a API real. Ver `00_READ_FIRST_SUPABASE_MCP.md` seção 5 para o relato completo.
 
 Este projeto é o terceiro de uma família de MCPs administrativos da VerticalParts. Os outros dois, já homologados em produção, são [`verticalparts-infrastructure-mcp`](https://github.com/verticalpartsIA/verticalparts-infrastructure-mcp) (VPS + Hostinger) e [`verticalparts-github-mcp`](https://github.com/verticalpartsIA/verticalparts-github-mcp) (GitHub) — mesma filosofia de governança, mesmo padrão de código.
 
@@ -51,6 +51,10 @@ Edge Functions: `sb_list_edge_functions`, `sb_get_edge_function`, `sb_deploy_edg
 Break-glass: `sb_api_call`
 
 **Nota sobre branching**: é uma feature paga e explicitamente experimental da própria Supabase. Os endpoints usados por essas 6 tools foram inferidos da documentação pública e do comportamento do conector oficial, não confirmados um a um contra a API real ainda — ver `04_SDD` seção 9. Tratar como não homologado até o teste real da PARTE C do runbook.
+
+## Estado dos projetos administrados
+
+14 projetos reais em 3 organizações (`VerticalParts`, `VerticalParts (LOW)`, `ESCAMAX`), confirmados via `sb_list_projects`/`sb_list_organizations` na homologação de 2026-09-19 — ver `config/projects.example.yaml` e `00_READ_FIRST` seção 6.
 
 ## Autenticação — Personal Access Token
 

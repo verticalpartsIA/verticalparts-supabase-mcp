@@ -1,8 +1,8 @@
 # 00 — LEIA PRIMEIRO — VerticalParts Supabase MCP
 
 Versão documental: 2026-09-19
-Status: canônico, pré-homologação (código completo, App/credencial ainda não gerados)
-Escopo: administração do Supabase da organização `VerticalParts` por LLM
+Status: canônico, **homologado contra a API real** (autenticação, leitura, escrita crítica com confirmação, classificação dinâmica de risco de SQL, ciclo completo criar→validar→reverter)
+Escopo: administração do Supabase das organizações visíveis ao Personal Access Token configurado (ver seção 5 — são 3, não 1)
 
 ## 1. Finalidade deste conjunto
 
@@ -46,39 +46,54 @@ Nunca invente `project_ref`, organização, nome de branch, nome de Edge Functio
 
 ## 5. Estado atual conhecido em 2026-09-19
 
-Este projeto está **em fase de scaffolding, código completo, ainda sem credencial real gerada** — equivalente ao estado do `verticalparts-github-mcp` antes da PARTE A do runbook ser executada. Nenhuma chamada real contra `api.supabase.com` foi feita a partir do código deste MCP ainda.
+Este projeto está **homologado contra a API real do Supabase** (`api.supabase.com`), com o PAT gerado pelo operador e configurado no host (`/opt/verticalparts-supabase-mcp/secrets/supabase-access-token`, nunca visto por esta LLM em nenhum momento — ver `05_RUNBOOK` PARTE B1).
 
-Pesquisa real feita antes de escrever este projeto (2026-09-19), usando os conectores Supabase oficiais já conectados a esta sessão Claude, sem inventar nada:
+Pesquisa preliminar (antes de gerar o PAT), usando os conectores Supabase oficiais já conectados a esta sessão Claude:
+- **Organização vista pelo conector oficial**: `VerticalParts` (id/slug `cdcqhcogckjfttevtoev`) — 11 projetos, todos `ACTIVE_HEALTHY`, região `sa-east-1`, Postgres 17.
 
-- **Organização real**: `VerticalParts` (id/slug `cdcqhcogckjfttevtoev`) — uma única organização, confirmado via `list_organizations`.
-- **11 projetos reais** confirmados via `list_projects` (todos `ACTIVE_HEALTHY`, região `sa-east-1`, Postgres 17): `VP CLICK` (`sfpnjwllcmentoocylow`), `vprequisicao` (`vvgcrhtmzvssfdazkkzk`), `vpposvenda360` (`jkbklzlbhhfnamaeislb`), `VP SUPRIMENTOS` (`qumqyhigghclguuihglh`), `bd_Omie` (`kgecbycsyrtdhmdziuul`), `vpsistema` (`ubdkoqxfwcraftesgmbw`), `vpproject` (`udztutvvmnnvfqklucya`), `vpprd` (`jxtqwzmpgofwctqajewt`), `Propostas` (`wfwraicrwazjblyvtzfu`), `VISITAS E BRINDES` (`bvvnoapdclxhuygptbza`), `developer_omie_com_br_service-list` (`hrhwplqlbuwfextznkea`).
-- Esses 11 `project_ref` reais foram usados para pré-popular `config/projects.example.yaml` — ver seção 6 abaixo e `05_RUNBOOK` PARTE B3. **A criticidade atribuída em `projects.example.yaml` é uma inferência a partir do nome do projeto, não uma confirmação do operador** — revisar antes de copiar para `config/projects.yaml` real.
+**Homologação real (2026-09-19), contra `api.supabase.com`, com o PAT do operador** — testes executados na VPS (`/opt/verticalparts-supabase-mcp`), chamando as próprias funções de tool do `server.py` (não só o client HTTP), validando também o gating de confirmação:
 
-Correção de topologia relevante (paralela à descoberta feita no github-mcp): diferente do GitHub App (que tem instalação granular por repositório e permissões por recurso), a Management API do Supabase autentica por **Personal Access Token (PAT)** — um único segredo que herda todo o acesso do usuário/conta que o gerou, sem escopo granular nativo. A governança por risco/confirmação deste MCP é, portanto, a **única** camada de escopo disponível — não existe um "GitHub App equivalente" com permissões por recurso no lado do Supabase. Ver `01_RAG` RAG-003A (aqui reaproveitado para essa observação) e `04_SDD` T-001.
+- **Teste 1 (auth/whoami)** — `sb_whoami` → `GET /v1/organizations` retornou `200` com **3 organizações**, não 1: `VerticalParts` (`cdcqhcogckjfttevtoev`), `VerticalParts (LOW)` (`hbxwejjlgxxhxzaksnvm`) e `ESCAMAX` (`tfxgxfybhxtpqyxtdyhu`). **Descoberta estrutural importante**: o PAT (gerado por uma conta humana) enxerga todas as organizações que essa conta enxerga, não só a que o conector oficial mostrava — confirma na prática o que `01_RAG` RAG-003A já previa em teoria. Não é bug; é a natureza de um PAT.
+- **Teste 2 (leitura)** — `sb_list_projects` → `GET /v1/projects` retornou **14 projetos** (3 a mais que o conector oficial via OAuth escopado): os 11 já conhecidos, mais `Aprovacao` (`hhgvlcskxopryqvhofsg`, org ESCAMAX, região `us-east-1`), `VP CATRACA` (`ipqtbqstasirxlcoapns`, org VerticalParts (LOW)) e `supplierquotation` (`jbwgjegelhoueygcvafq`, org VerticalParts (LOW), status `INACTIVE`). Todos os 14 já estão em `config/projects.example.yaml`.
+- **Teste 3 (gating de confirmação)** — `sb_apply_migration` sem `confirmation` → bloqueado (`PermissionError`); com `confirmation="CONFIRMO_DESTRUTIVO"` (errada) → bloqueado; só com `confirmation="CONFIRMO"` → executou.
+- **Teste 4 (escrita real + validação + reversão)** — `sb_apply_migration` criou a tabela `_mcp_homologacao_teste` no projeto `VISITAS E BRINDES` (`bvvnoapdclxhuygptbza`, criticidade `low`); `sb_list_tables` confirmou a tabela presente; ao final, `sb_execute_sql` com `DROP TABLE` e `confirmation="CONFIRMO_DESTRUTIVO"` removeu a tabela; `sb_list_tables` confirmou a remoção — ciclo completo criar → validar → reverter, sem resíduo.
+- **Teste 5 (classificação dinâmica de `sb_execute_sql`, contra a API real)** — `SELECT count(*) FROM _mcp_homologacao_teste` executou sem `confirmation` (READ); `INSERT ...` foi bloqueado sem `confirmation` (CRITICAL); `DROP TABLE ...` foi bloqueado sem `confirmation` e também bloqueado com `confirmation="CONFIRMO"` (errada), só executando com `confirmation="CONFIRMO_DESTRUTIVO"` — os três níveis de risco de `sql_risk.py` (ver `01_RAG` RAG-006A) validados contra o Postgres real de um projeto, não só em teste unitário isolado.
+
+Nenhuma chamada de teste tocou um projeto `critical`/`high` — todo o ciclo de escrita/reversão foi feito em `VISITAS E BRINDES` (`low`), como o `05_RUNBOOK` PARTE C4 recomenda.
+
+Correção de topologia relevante (paralela à descoberta feita no github-mcp): diferente do GitHub App (que tem instalação granular por repositório e permissões por recurso), a Management API do Supabase autentica por **Personal Access Token (PAT)** — um único segredo que herda todo o acesso do usuário/conta que o gerou, sem escopo granular nativo. A governança por risco/confirmação deste MCP é, portanto, a **única** camada de escopo disponível — não existe um "GitHub App equivalente" com permissões por recurso no lado do Supabase. Ver `01_RAG` RAG-003A e `04_SDD` T-001 — agora com evidência real, não só teoria (Teste 1 acima).
 
 ## 6. Projetos conhecidos (ver `config/projects.example.yaml` para o registro completo)
 
-| Nome | `project_ref` | Inferência de criticidade |
-|---|---|---|
-| VP CLICK | `sfpnjwllcmentoocylow` | critical (produção, mesmo domínio de `005_vpclick` no github-mcp) |
-| vprequisicao | `vvgcrhtmzvssfdazkkzk` | critical (produção, mesmo domínio de `003_requisicoes`) |
-| bd_Omie | `kgecbycsyrtdhmdziuul` | critical (integração financeira/ERP) |
-| vpposvenda360 | `jkbklzlbhhfnamaeislb` | high |
-| VP SUPRIMENTOS | `qumqyhigghclguuihglh` | high |
-| vpsistema | `ubdkoqxfwcraftesgmbw` | high |
-| vpprd | `jxtqwzmpgofwctqajewt` | high (nome sugere produção, mas propósito exato não confirmado) |
-| vpproject | `udztutvvmnnvfqklucya` | medium |
-| Propostas | `wfwraicrwazjblyvtzfu` | medium |
-| developer_omie_com_br_service-list | `hrhwplqlbuwfextznkea` | medium |
-| VISITAS E BRINDES | `bvvnoapdclxhuygptbza` | low |
+14 projetos em 3 organizações, confirmados via `sb_list_projects`/`sb_list_organizations` reais em 2026-09-19 (ver seção 5).
 
-## 7. Próximos passos (bloqueantes, na ordem)
+| Nome | `project_ref` | Organização | Inferência de criticidade |
+|---|---|---|---|
+| VP CLICK | `sfpnjwllcmentoocylow` | VerticalParts | critical (produção, mesmo domínio de `005_vpclick` no github-mcp) |
+| vprequisicao | `vvgcrhtmzvssfdazkkzk` | VerticalParts | critical (produção, mesmo domínio de `003_requisicoes`) |
+| bd_Omie | `kgecbycsyrtdhmdziuul` | VerticalParts | critical (integração financeira/ERP) |
+| vpposvenda360 | `jkbklzlbhhfnamaeislb` | VerticalParts | high |
+| VP SUPRIMENTOS | `qumqyhigghclguuihglh` | VerticalParts | high |
+| vpsistema | `ubdkoqxfwcraftesgmbw` | VerticalParts | high |
+| vpprd | `jxtqwzmpgofwctqajewt` | VerticalParts | high (nome sugere produção, mas propósito exato não confirmado) |
+| vpproject | `udztutvvmnnvfqklucya` | VerticalParts | medium |
+| Propostas | `wfwraicrwazjblyvtzfu` | VerticalParts | medium |
+| Aprovacao | `hhgvlcskxopryqvhofsg` | **ESCAMAX** (não VerticalParts) | medium — confirmar com o operador se essa org é legítima |
+| VP CATRACA | `ipqtbqstasirxlcoapns` | VerticalParts (LOW) | medium |
+| developer_omie_com_br_service-list | `hrhwplqlbuwfextznkea` | VerticalParts | medium |
+| VISITAS E BRINDES | `bvvnoapdclxhuygptbza` | VerticalParts | low — usado como projeto de teste na homologação real |
+| supplierquotation | `jbwgjegelhoueygcvafq` | VerticalParts (LOW) | low (status `INACTIVE`) |
 
-1. Gerar o Personal Access Token do Supabase (`05_RUNBOOK` PARTE A) — passo humano, na conta/organização `VerticalParts`.
-2. Preencher `.env` e `config/projects.yaml` reais (PARTE B).
-3. Testes locais reais contra `api.supabase.com` (PARTE C): `sb_whoami`, uma leitura (`sb_list_projects`), uma tool crítica com confirmação e validação por leitura.
-4. Deploy público (PARTE D): systemd + Nginx + TLS em `https://supabase-mcp.vpsistema.com/mcp`, bind interno `127.0.0.1:8022`.
-5. Homologação funcional ampliada, no mesmo padrão do github-mcp: ciclo real de migração/SQL, ciclo real de Edge Function, e uma verificação honesta de quais tools de branching realmente respondem como documentado (branching é uma feature experimental da própria Supabase — ver `04_SDD` seção 9).
+## 7. Próximos passos (não-bloqueantes)
+
+Tudo que era pré-requisito para a homologação real está feito (auth, leitura, escrita crítica com confirmação, classificação dinâmica de risco de SQL, ciclo completo criar→validar→reverter — ver seção 5). Itens que ficam para depois:
+
+1. Deploy público (`05_RUNBOOK` PARTE D): systemd + Nginx + TLS em `https://supabase-mcp.vpsistema.com/mcp`, bind interno `127.0.0.1:8022` — hoje o MCP roda testado, mas só localmente na VPS (stdio), sem endpoint HTTP público ainda.
+2. Conectar o endpoint público num cliente MCP real (Claude) e validar por ali, mesmo passo que faltou no github-mcp até ele ser publicado.
+3. Homologação de Edge Functions (`sb_deploy_edge_function`/`sb_list_edge_functions`/etc.) — ainda não testado contra a API real, só as tools de projeto/organização/banco de dados foram.
+4. Verificação honesta de quais tools de branching realmente respondem como documentado (branching é uma feature experimental/paga da própria Supabase — ver `04_SDD` seção 9) — não testado ainda.
+5. Confirmar com o operador se a organização `ESCAMAX` (projeto `Aprovacao`) é legítima antes de qualquer operação crítica ali — descoberta na homologação, não confirmada previamente.
+6. Rotacionar o Personal Access Token periodicamente (`05_RUNBOOK` PARTE F) — prioridade mais alta que no github-mcp, ver `01_RAG` RAG-003A.
 
 Nenhum destes passos deve ser marcado como concluído sem evidência de chamada real — mesma regra do github-mcp (`01_RAG` RAG-009 lá: "declarar este MCP em produção sem evidência de chamada real" é anti-padrão).
 

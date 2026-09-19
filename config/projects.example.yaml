@@ -1,5 +1,12 @@
-# Descoberto via sb_list_projects / conector Supabase oficial em 2026-09-19.
-# Organização: VerticalParts (org_id cdcqhcogckjfttevtoev), 11 projetos, todos ACTIVE_HEALTHY, região sa-east-1.
+# Descoberto em duas etapas (2026-09-19):
+# 1) via conector Supabase oficial (OAuth, escopado): 1 organização (VerticalParts,
+#    cdcqhcogckjfttevtoev), 11 projetos.
+# 2) via homologação real do PAT deste MCP (sb_list_organizations/sb_list_projects,
+#    Personal Access Token de conta humana): o PAT enxerga na verdade 3 organizações
+#    (VerticalParts cdcqhcogckjfttevtoev, "VerticalParts (LOW)" hbxwejjlgxxhxzaksnvm,
+#    ESCAMAX tfxgxfybhxtpqyxtdyhu) e 14 projetos — 3 a mais que o conector oficial
+#    mostrava. Isso é o comportamento esperado de um PAT (ver 01_RAG RAG-003A: herda
+#    TODO o acesso da conta, não só uma organização), não um bug.
 #
 # IMPORTANTE: a 'criticality' abaixo é INFERIDA do nome do projeto, não confirmada
 # pelo operador. Revisar com o operador antes de copiar para config/projects.yaml
@@ -80,7 +87,29 @@ projects:
     ref: bvvnoapdclxhuygptbza
     org_id: cdcqhcogckjfttevtoev
     criticality: low
-    description: "VISITAS E BRINDES — propósito não confirmado, nome sugere escopo pequeno/interno."
+    description: "VISITAS E BRINDES — propósito não confirmado, nome sugere escopo pequeno/interno. Usado como projeto de teste na homologação real de 2026-09-19 (criação/leitura/remoção de tabela _mcp_homologacao_teste, sem resíduo)."
+
+  # --- projetos descobertos só na homologação real do PAT (organizações diferentes) ---
+
+  aprovacao:
+    ref: hhgvlcskxopryqvhofsg
+    org_id: tfxgxfybhxtpqyxtdyhu
+    criticality: medium
+    description: "Aprovacao — organização ESCAMAX (não VerticalParts), região us-east-1. Não catalogado pelo conector oficial (escopado só a VerticalParts) — descoberto na homologação real do PAT."
+    notes:
+      - "Confirmar com o operador se ESCAMAX é uma organização legítima da VerticalParts (ex.: cliente/parceiro/nome comercial alternativo) antes de qualquer operação crítica aqui."
+
+  vp-catraca:
+    ref: ipqtbqstasirxlcoapns
+    org_id: hbxwejjlgxxhxzaksnvm
+    criticality: medium
+    description: "VP CATRACA — organização 'VerticalParts (LOW)', provável sistema de controle de acesso/catraca."
+
+  supplierquotation:
+    ref: jbwgjegelhoueygcvafq
+    org_id: hbxwejjlgxxhxzaksnvm
+    criticality: low
+    description: "supplierquotation — organização 'VerticalParts (LOW)'. Status INACTIVE em 2026-09-19 (não ACTIVE_HEALTHY como os demais)."
 
 # Copie este arquivo para config/projects.yaml somente no ambiente de execução.
 # config/projects.yaml é ignorado pelo Git — não é catálogo público, é registro operacional.

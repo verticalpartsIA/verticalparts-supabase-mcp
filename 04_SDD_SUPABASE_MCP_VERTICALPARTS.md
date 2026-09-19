@@ -171,11 +171,19 @@ Mitigação: seção 9 abaixo marca branching como não homologado até teste re
 
 ## 9. Estado de implementação (2026-09-19)
 
-Implementado, não testado contra API real: todas as 33 tools, validação de input, gating de confirmação (fixo e dinâmico), classificador SQL.
+Implementado e **homologado contra a API real** (`api.supabase.com`, PAT do operador, testes executados em `/opt/verticalparts-supabase-mcp` na VPS chamando as próprias funções de tool, não só o client HTTP):
 
-**Não homologado ainda** — falta gerar o PAT (`05_RUNBOOK` PARTE A) e rodar os testes reais da PARTE C. Nenhuma chamada real foi feita a partir deste código contra `api.supabase.com`.
+- autenticação (`sb_whoami` → `GET /v1/organizations`, 200, revelou 3 organizações reais, não 1 — ver `01_RAG` RAG-003A);
+- leitura (`sb_list_projects` → 14 projetos reais, batendo com `config/projects.example.yaml` atualizado);
+- gating de confirmação (`sb_apply_migration` sem confirmação bloqueado; com confirmação errada bloqueado; só com `CONFIRMO` executa);
+- escrita real + validação + reversão (`sb_apply_migration` criou tabela de teste em `VISITAS E BRINDES`, `sb_list_tables` confirmou, `sb_execute_sql` com `DROP TABLE`+`CONFIRMO_DESTRUTIVO` removeu, `sb_list_tables` confirmou remoção — sem resíduo);
+- classificação dinâmica de `sb_execute_sql` contra dados reais (`SELECT` sem confirmação, `INSERT` bloqueado sem `CONFIRMO`, `DROP` bloqueado sem `CONFIRMO_DESTRUTIVO` e também com `CONFIRMO` errado).
 
-Risco adicional identificado antes mesmo da implementação (honestidade arquitetural, não suposição otimista): os endpoints exatos de branching (`/v1/branches/...` vs. `/v1/projects/{ref}/branches/...`, nomes exatos de sub-recursos para merge/reset/rebase) foram inferidos a partir da documentação pública e do comportamento das tools do conector oficial, **não confirmados linha a linha contra a especificação OpenAPI da Management API**. Tratar como primeira prioridade de teste real assim que o PAT existir, antes de declarar essa parte do catálogo homologada — se os paths estiverem errados, o sintoma esperado é 404, não um comportamento inseguro.
+**Ainda não testado contra API real**: Edge Functions (`sb_list_edge_functions`/`sb_deploy_edge_function`/etc.) e branches de desenvolvimento (`sb_create_branch`/`sb_merge_branch`/etc.) — só as tools de organização/projeto/banco de dados foram exercitadas na homologação de 2026-09-19.
+
+Risco adicional identificado antes mesmo da implementação (honestidade arquitetural, não suposição otimista): os endpoints exatos de branching (`/v1/branches/...` vs. `/v1/projects/{ref}/branches/...`, nomes exatos de sub-recursos para merge/reset/rebase) foram inferidos a partir da documentação pública e do comportamento das tools do conector oficial, **não confirmados linha a linha contra a especificação OpenAPI da Management API** — isso continua valendo, já que essa parte do catálogo não foi tocada na homologação real. Tratar como próxima prioridade de teste real antes de declarar essa parte do catálogo homologada — se os paths estiverem errados, o sintoma esperado é 404, não um comportamento inseguro.
+
+**Descoberta estrutural da homologação**: o PAT do operador enxerga 3 organizações (`VerticalParts`, `VerticalParts (LOW)`, `ESCAMAX`), não só `VerticalParts` como a pesquisa inicial via conector oficial sugeria — confirma na prática RAG-003A. O projeto `Aprovacao` (org `ESCAMAX`) precisa de confirmação do operador antes de qualquer operação crítica, por estar fora da organização principal esperada.
 
 ## 10. Evolução futura (backlog, não implementado)
 
