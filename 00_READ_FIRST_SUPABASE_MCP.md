@@ -91,7 +91,7 @@ Isso fecha todos os critérios de aceite da PARTE I do runbook para a parte de d
 | vpprd | `jxtqwzmpgofwctqajewt` | VerticalParts | high (nome sugere produção, mas propósito exato não confirmado) |
 | vpproject | `udztutvvmnnvfqklucya` | VerticalParts | medium |
 | Propostas | `wfwraicrwazjblyvtzfu` | VerticalParts | medium |
-| Aprovacao | `hhgvlcskxopryqvhofsg` | **ESCAMAX** (não VerticalParts) | medium — confirmar com o operador se essa org é legítima |
+| Aprovacao | `hhgvlcskxopryqvhofsg` | **ESCAMAX** (não VerticalParts, confirmado legítimo pelo operador) | medium |
 | VP CATRACA | `ipqtbqstasirxlcoapns` | VerticalParts (LOW) | medium |
 | developer_omie_com_br_service-list | `hrhwplqlbuwfextznkea` | VerticalParts | medium |
 | VISITAS E BRINDES | `bvvnoapdclxhuygptbza` | VerticalParts | low — usado como projeto de teste na homologação real |
@@ -103,8 +103,9 @@ Tudo que era pré-requisito para produção está feito: homologação funcional
 
 1. Homologação de Edge Functions (`sb_deploy_edge_function`/`sb_list_edge_functions`/etc.) — ainda não testado contra a API real, só as tools de projeto/organização/banco de dados foram.
 2. Verificação honesta de quais tools de branching realmente respondem como documentado (branching é uma feature experimental/paga da própria Supabase — ver `04_SDD` seção 9) — não testado ainda.
-3. Confirmar com o operador se a organização `ESCAMAX` (projeto `Aprovacao`) é legítima antes de qualquer operação crítica ali — descoberta na homologação, não confirmada previamente (nota: existe um site `escamaxcompravp.vpsistema.com` no inventário da VerticalParts, o que sugere que é legítimo, mas o operador deve confirmar explicitamente).
-4. Rotacionar o Personal Access Token periodicamente (`05_RUNBOOK` PARTE F) — prioridade mais alta que no github-mcp, ver `01_RAG` RAG-003A.
+3. Rotacionar o Personal Access Token periodicamente (`05_RUNBOOK` PARTE F) — prioridade mais alta que no github-mcp, ver `01_RAG` RAG-003A.
+
+**Confirmado pelo operador (2026-09-19)**: a organização `ESCAMAX` (projeto `Aprovacao`) é legítima — faz parte do universo VerticalParts (coerente com o site `escamaxcompravp.vpsistema.com` já catalogado no inventário de infraestrutura). Não é mais uma pendência; `Aprovacao` deve ser tratado como qualquer outro projeto real no catálogo, com a criticidade `medium` já registrada em `config/projects.example.yaml`.
 
 Nenhum destes passos deve ser marcado como concluído sem evidência de chamada real — mesma regra do github-mcp (`01_RAG` RAG-009 lá: "declarar este MCP em produção sem evidência de chamada real" é anti-padrão).
 

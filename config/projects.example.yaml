@@ -97,7 +97,7 @@ projects:
     criticality: medium
     description: "Aprovacao — organização ESCAMAX (não VerticalParts), região us-east-1. Não catalogado pelo conector oficial (escopado só a VerticalParts) — descoberto na homologação real do PAT."
     notes:
-      - "Confirmar com o operador se ESCAMAX é uma organização legítima da VerticalParts (ex.: cliente/parceiro/nome comercial alternativo) antes de qualquer operação crítica aqui."
+      - "ESCAMAX confirmada como legítima pelo operador em 2026-09-19 (faz parte do universo VerticalParts, coerente com escamaxcompravp.vpsistema.com no inventário de infraestrutura)."
 
   vp-catraca:
     ref: ipqtbqstasirxlcoapns

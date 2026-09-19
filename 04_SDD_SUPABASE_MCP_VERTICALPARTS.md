@@ -185,7 +185,7 @@ Implementado e **homologado contra a API real** (`api.supabase.com`, PAT do oper
 
 Risco adicional identificado antes mesmo da implementação (honestidade arquitetural, não suposição otimista): os endpoints exatos de branching (`/v1/branches/...` vs. `/v1/projects/{ref}/branches/...`, nomes exatos de sub-recursos para merge/reset/rebase) foram inferidos a partir da documentação pública e do comportamento das tools do conector oficial, **não confirmados linha a linha contra a especificação OpenAPI da Management API** — isso continua valendo, já que essa parte do catálogo não foi tocada na homologação real. Tratar como próxima prioridade de teste real antes de declarar essa parte do catálogo homologada — se os paths estiverem errados, o sintoma esperado é 404, não um comportamento inseguro.
 
-**Descoberta estrutural da homologação**: o PAT do operador enxerga 3 organizações (`VerticalParts`, `VerticalParts (LOW)`, `ESCAMAX`), não só `VerticalParts` como a pesquisa inicial via conector oficial sugeria — confirma na prática RAG-003A. O projeto `Aprovacao` (org `ESCAMAX`) precisa de confirmação do operador antes de qualquer operação crítica, por estar fora da organização principal esperada.
+**Descoberta estrutural da homologação**: o PAT do operador enxerga 3 organizações (`VerticalParts`, `VerticalParts (LOW)`, `ESCAMAX`), não só `VerticalParts` como a pesquisa inicial via conector oficial sugeria — confirma na prática RAG-003A. O operador já confirmou (2026-09-19) que `ESCAMAX` é legítima; o projeto `Aprovacao` (org `ESCAMAX`) não é mais tratado como pendência, só como um projeto `medium` normal do catálogo.
 
 ## 10. Evolução futura (backlog, não implementado)
 
