@@ -1,0 +1,86 @@
+# Descoberto via sb_list_projects / conector Supabase oficial em 2026-09-19.
+# Organização: VerticalParts (org_id cdcqhcogckjfttevtoev), 11 projetos, todos ACTIVE_HEALTHY, região sa-east-1.
+#
+# IMPORTANTE: a 'criticality' abaixo é INFERIDA do nome do projeto, não confirmada
+# pelo operador. Revisar com o operador antes de copiar para config/projects.yaml
+# real e tratar como fonte de verdade para decisões de risco. Ver 00_READ_FIRST
+# seção 6 e 01_RAG RAG-008.
+#
+# Critérios de 'criticality': critical (produção direta/financeiro/segredo),
+# high (produção indireta), medium (staging/ferramenta interna), low (docs/protótipo).
+
+projects:
+  vp-click:
+    ref: sfpnjwllcmentoocylow
+    org_id: cdcqhcogckjfttevtoev
+    criticality: critical
+    description: "VP CLICK — mesmo domínio de 005_vpclick no github-mcp, produção via Docker na VPS."
+    notes:
+      - "Criticidade inferida pelo nome/paralelo com o repositório GitHub equivalente — confirmar com o operador."
+
+  vprequisicao:
+    ref: vvgcrhtmzvssfdazkkzk
+    org_id: cdcqhcogckjfttevtoev
+    criticality: critical
+    description: "vprequisicao — mesmo domínio de 003_requisicoes no github-mcp, produção no Shared Hosting."
+    notes:
+      - "Criticidade inferida pelo nome/paralelo com o repositório GitHub equivalente — confirmar com o operador."
+
+  bd_omie:
+    ref: kgecbycsyrtdhmdziuul
+    org_id: cdcqhcogckjfttevtoev
+    criticality: critical
+    description: "bd_Omie — provável integração com o ERP Omie (financeiro)."
+    notes:
+      - "Criticidade inferida pelo nome (integração financeira) — confirmar com o operador."
+
+  vpposvenda360:
+    ref: jkbklzlbhhfnamaeislb
+    org_id: cdcqhcogckjfttevtoev
+    criticality: high
+    description: "vpposvenda360 — provável sistema de pós-venda."
+
+  vp-suprimentos:
+    ref: qumqyhigghclguuihglh
+    org_id: cdcqhcogckjfttevtoev
+    criticality: high
+    description: "VP SUPRIMENTOS — provável sistema de suprimentos/compras."
+
+  vpsistema:
+    ref: ubdkoqxfwcraftesgmbw
+    org_id: cdcqhcogckjfttevtoev
+    criticality: high
+    description: "vpsistema — nome coincide com o domínio vpsistema.com usado pelos MCPs de infra/GitHub; propósito exato a confirmar."
+
+  vpprd:
+    ref: jxtqwzmpgofwctqajewt
+    org_id: cdcqhcogckjfttevtoev
+    criticality: high
+    description: "vpprd — nome sugere ambiente de produção, propósito exato não confirmado."
+
+  vpproject:
+    ref: udztutvvmnnvfqklucya
+    org_id: cdcqhcogckjfttevtoev
+    criticality: medium
+    description: "vpproject — propósito não confirmado."
+
+  propostas:
+    ref: wfwraicrwazjblyvtzfu
+    org_id: cdcqhcogckjfttevtoev
+    criticality: medium
+    description: "Propostas — provável sistema de propostas comerciais."
+
+  developer-omie-service-list:
+    ref: hrhwplqlbuwfextznkea
+    org_id: cdcqhcogckjfttevtoev
+    criticality: medium
+    description: "developer_omie_com_br_service-list — provável ferramenta de desenvolvimento relacionada à integração Omie."
+
+  visitas-e-brindes:
+    ref: bvvnoapdclxhuygptbza
+    org_id: cdcqhcogckjfttevtoev
+    criticality: low
+    description: "VISITAS E BRINDES — propósito não confirmado, nome sugere escopo pequeno/interno."
+
+# Copie este arquivo para config/projects.yaml somente no ambiente de execução.
+# config/projects.yaml é ignorado pelo Git — não é catálogo público, é registro operacional.

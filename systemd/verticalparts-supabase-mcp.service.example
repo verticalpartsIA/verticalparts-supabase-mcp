@@ -1,0 +1,17 @@
+[Unit]
+Description=VerticalParts Supabase MCP
+After=network.target
+
+[Service]
+Type=simple
+User=supabase-mcp
+WorkingDirectory=/opt/verticalparts-supabase-mcp
+EnvironmentFile=/opt/verticalparts-supabase-mcp/.env
+ExecStart=/opt/verticalparts-supabase-mcp/.venv/bin/verticalparts-supabase-mcp
+Restart=on-failure
+RestartSec=5
+ProtectHome=read-only
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

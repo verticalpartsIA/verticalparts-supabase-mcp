@@ -1,0 +1,14 @@
+confirmations:
+  critical: "CONFIRMO"
+  destructive: "CONFIRMO_DESTRUTIVO"
+  break_glass: "BREAK_GLASS"
+
+break_glass:
+  env_flag: "SUPABASE_ALLOW_BREAK_GLASS"
+  default: false
+
+notes:
+  - "sb_delete_project é a operação de maior risco do catálogo — apaga banco, Auth, Storage e Edge Functions juntos, sem lixeira. Sempre confirmar project_ref exato antes de pedir CONFIRMO_DESTRUTIVO."
+  - "sb_execute_sql tem risco dinâmico (ver sql_risk.py e 01_RAG RAG-006A) — não é uma tool de risco fixo como as demais."
+  - "Nenhuma tool deste MCP retorna service_role key, por design — não é uma lacuna a preencher."
+  - "sb_create_project/sb_restore_project têm custo financeiro real em plano pago — mostrar sb_get_cost antes de CONFIRMO quando disponível."
