@@ -74,6 +74,8 @@ Evidência de homologação do protocolo MCP em si (via HTTPS público, requisi�
 
 Isso fecha todos os critérios de aceite da PARTE I do runbook para a parte de deploy/protocolo. A homologação funcional (chamadas reais de organização/projeto/banco de dados, seção acima) já tinha sido feita antes do deploy, contra o mesmo código, via stdio local na VPS.
 
+**Conector real conectado e testado (2026-09-19)**: o operador conectou `VerticalParts Supabase` no claude.ai (Settings → Connectors, header `X-API-Key`) e `sb_whoami` foi chamado através desse conector de verdade (não via `curl`/script) — retornou as mesmas 3 organizações da homologação anterior. Isso fecha o último item não-bloqueante da seção 7 ("conectar num cliente MCP real e validar por ali").
+
 ## 6. Projetos conhecidos (ver `config/projects.example.yaml` para o registro completo)
 
 14 projetos em 3 organizações, confirmados via `sb_list_projects`/`sb_list_organizations` reais em 2026-09-19 (ver seção 5).
@@ -97,13 +99,12 @@ Isso fecha todos os critérios de aceite da PARTE I do runbook para a parte de d
 
 ## 7. Próximos passos (não-bloqueantes)
 
-Tudo que era pré-requisito para produção está feito: homologação funcional real (auth, leitura, escrita crítica com confirmação, classificação dinâmica de risco de SQL, ciclo completo criar→validar→reverter) e deploy público com protocolo MCP validado via HTTPS real (ver seções 5 e a evidência de deploy logo acima). Itens que ficam para depois:
+Tudo que era pré-requisito para produção está feito: homologação funcional real (auth, leitura, escrita crítica com confirmação, classificação dinâmica de risco de SQL, ciclo completo criar→validar→reverter), deploy público com protocolo MCP validado via HTTPS real, e conector real conectado e testado no claude.ai (ver seções 5 e a evidência logo acima). Itens que ficam para depois:
 
-1. Conectar este endpoint (`https://supabase-mcp.vpsistema.com/mcp`) num cliente MCP real (Claude) e validar por ali — os testes até aqui foram via `curl`/script direto no protocolo, nunca através de um cliente MCP de fato.
-2. Homologação de Edge Functions (`sb_deploy_edge_function`/`sb_list_edge_functions`/etc.) — ainda não testado contra a API real, só as tools de projeto/organização/banco de dados foram.
-3. Verificação honesta de quais tools de branching realmente respondem como documentado (branching é uma feature experimental/paga da própria Supabase — ver `04_SDD` seção 9) — não testado ainda.
-4. Confirmar com o operador se a organização `ESCAMAX` (projeto `Aprovacao`) é legítima antes de qualquer operação crítica ali — descoberta na homologação, não confirmada previamente (nota: existe um site `escamaxcompravp.vpsistema.com` no inventário da VerticalParts, o que sugere que é legítimo, mas o operador deve confirmar explicitamente).
-5. Rotacionar o Personal Access Token periodicamente (`05_RUNBOOK` PARTE F) — prioridade mais alta que no github-mcp, ver `01_RAG` RAG-003A.
+1. Homologação de Edge Functions (`sb_deploy_edge_function`/`sb_list_edge_functions`/etc.) — ainda não testado contra a API real, só as tools de projeto/organização/banco de dados foram.
+2. Verificação honesta de quais tools de branching realmente respondem como documentado (branching é uma feature experimental/paga da própria Supabase — ver `04_SDD` seção 9) — não testado ainda.
+3. Confirmar com o operador se a organização `ESCAMAX` (projeto `Aprovacao`) é legítima antes de qualquer operação crítica ali — descoberta na homologação, não confirmada previamente (nota: existe um site `escamaxcompravp.vpsistema.com` no inventário da VerticalParts, o que sugere que é legítimo, mas o operador deve confirmar explicitamente).
+4. Rotacionar o Personal Access Token periodicamente (`05_RUNBOOK` PARTE F) — prioridade mais alta que no github-mcp, ver `01_RAG` RAG-003A.
 
 Nenhum destes passos deve ser marcado como concluído sem evidência de chamada real — mesma regra do github-mcp (`01_RAG` RAG-009 lá: "declarar este MCP em produção sem evidência de chamada real" é anti-padrão).
 

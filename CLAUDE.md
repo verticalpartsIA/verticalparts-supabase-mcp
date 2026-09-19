@@ -40,6 +40,7 @@ Administrar o Supabase da organização `VerticalParts` por tools semânticas, c
 - **ainda não testado**: Edge Functions e branches de desenvolvimento (feature experimental da própria Supabase) — ver `04_SDD` seção 9;
 - deploy público concluído: `verticalparts-supabase-mcp.service` (systemd, usuário `supabase-mcp`, `127.0.0.1:8022`) atrás de Nginx + TLS (Let's Encrypt, expira 2026-12-18) em `https://supabase-mcp.vpsistema.com/mcp`, protegido por `X-API-Key`;
 - protocolo MCP testado via HTTPS público de verdade: `initialize` (200), `tools/list` (33 tools), auth (401 sem chave / 401 chave errada);
+- conector `VerticalParts Supabase` conectado no claude.ai e testado com `sb_whoami` de verdade (não só via curl/script);
 - break-glass (`sb_api_call` para métodos != GET) desabilitado por padrão (`SUPABASE_ALLOW_BREAK_GLASS=false`).
 
 ## Nota de topologia: autenticação por PAT, não por app/instalação
