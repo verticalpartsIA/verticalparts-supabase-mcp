@@ -171,6 +171,10 @@ Mitigação: `03_INSTRUCTIONS` seção 7 exige mostrar `sb_get_cost` antes de `C
 Risco: uma tool nova (não coberta pela homologação inicial) usa um path/formato de request inferido por analogia em vez de confirmado — como aconteceu com `sb_deploy_edge_function` (ver seção 2.4).
 Mitigação: erro visível (404/400) é o sintoma esperado quando isso acontece, não um comportamento inseguro — mas nenhuma tool deve ser declarada "homologada" em `00_READ_FIRST` sem teste real. Ver `01_RAG` RAG-008A para a lição registrada.
 
+### T-008 — `GET /branches/{id}` expõe `db_pass`/`jwt_secret` em texto claro
+Risco: diferente de `GET /projects/{ref}/branches` (metadados seguros), o endpoint de branch individual por id devolve credenciais completas de conexão — se uma tool `sb_get_branch` for adicionada sem redigir esses campos, expõe segredo real a qualquer chamador.
+Mitigação: nenhuma tool deste MCP chama esse endpoint hoje. Se for adicionada, deve redigir `db_pass`/`jwt_secret` antes de retornar (mesma política de `service_role key`, FR-009). Incidente real registrado durante a homologação de 2026-09-19 (ver `00_READ_FIRST` seção 5 e `01_RAG` RAG-007A) — contido porque a branch testada já tinha sido apagada quando a exposição aconteceu, mas a lição de processo vale independentemente da consequência real: nunca imprimir resposta bruta de endpoint ainda não confirmado como seguro.
+
 ### T-006 — Branching tratado como maduro sem ter sido homologado
 Risco: LLM promete/assume comportamento de `sb_create_branch`/`sb_merge_branch`/etc. sem esses endpoints terem sido validados contra a API real (são feature paga/experimental da própria Supabase, endpoints menos estáveis que o resto da Management API).
 Mitigação: seção 9 abaixo marca branching como não homologado até teste real; `03_INSTRUCTIONS` seção 9 instrui a LLM a avisar o operador antes do primeiro uso em uma sessão.
@@ -189,7 +193,7 @@ Implementado e **homologado contra a API real** (`api.supabase.com`, PAT do oper
 
 **Edge Functions homologadas (2026-09-19)**: `sb_list_edge_functions` → `sb_deploy_edge_function` (criar) → `sb_get_edge_function` → `sb_deploy_edge_function` de novo (atualizar, versão 1→2) → `sb_list_edge_functions` (função de teste ao lado da função de produção real, intacta) → `sb_delete_edge_function` com `CONFIRMO_DESTRUTIVO` → validação final. Um bug real foi encontrado e corrigido no processo — ver seção 2.4 e T-007 abaixo.
 
-**Ainda não testado contra API real**: branches de desenvolvimento (`sb_create_branch`/`sb_merge_branch`/etc.) — ver seção 9.
+**Branches homologados parcialmente (2026-09-19)**: `sb_list_branches`/`sb_create_branch`/`sb_delete_branch` confirmados corretos contra a API real (ciclo completo: listar → criar → apagar, sem resíduo). `sb_merge_branch`/`sb_reset_branch`/`sb_rebase_branch` **não foram executados contra a API real, por decisão deliberada** (merge afeta produção real, reset descarta dados) — só o gating de confirmação foi validado (bloqueio antes de qualquer chamada de rede). Os paths desses três continuam inferidos, não confirmados. Ver seção 9 para o detalhe completo, e T-008 para um incidente de segurança real (contido) descoberto no processo.
 
 Risco adicional identificado antes mesmo da implementação (honestidade arquitetural, não suposição otimista): os endpoints exatos de branching (`/v1/branches/...` vs. `/v1/projects/{ref}/branches/...`, nomes exatos de sub-recursos para merge/reset/rebase) foram inferidos a partir da documentação pública e do comportamento das tools do conector oficial, **não confirmados linha a linha contra a especificação OpenAPI da Management API** — isso continua valendo, já que essa parte do catálogo não foi tocada na homologação real. Tratar como próxima prioridade de teste real antes de declarar essa parte do catálogo homologada — se os paths estiverem errados, o sintoma esperado é 404, não um comportamento inseguro.
 

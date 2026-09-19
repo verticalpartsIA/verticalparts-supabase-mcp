@@ -96,6 +96,14 @@ Segredo nunca é conteúdo de RAG nem de resposta ao usuário.
 - `service_role key` (secret key) de qualquer projeto: **este MCP nunca expõe esse valor**, mesmo que a Management API permita obtê-lo — só `sb_get_publishable_keys` (chave `anon`/pública) é exposta. Essa é uma decisão de design deliberada (defesa em profundidade contra um vazamento que daria bypass total de RLS em qualquer projeto), não uma limitação técnica.
 - Senha de banco de dados (`db_pass`) usada em `sb_create_project`: nunca logada nem retornada; auditoria redige o campo.
 
+## RAG-007A — `GET /branches/{id}` devolve credenciais completas, não metadados
+
+Descoberto durante a homologação de branches (2026-09-19): diferente de `GET /projects/{ref}/branches` (que lista branches com metadados seguros — id, nome, status), `GET /branches/{id}` (um branch específico, por id) devolve `db_pass` e `jwt_secret` **em texto claro** — é a mesma forma de resposta de "detalhes de conexão do projeto", não um endpoint de metadados de branch.
+
+- **Nunca** chamar esse endpoint diretamente (nem via `sb_api_call`) fora de um fluxo que redija esses campos antes de qualquer log/resposta/impressão.
+- Este MCP **não tem** hoje uma tool `sb_get_branch` — se uma for adicionada no futuro, ela deve redigir `db_pass`/`jwt_secret` antes de retornar, mesma política de `service_role key` (RAG-007).
+- O incidente real que motivou esta regra foi contido: a branch testada já tinha sido apagada quando a exposição aconteceu, então as credenciais eram de um banco que já não existe. Ainda assim, tratar como se fosse um vazamento real — a lição é sobre processo (nunca imprimir resposta bruta de endpoint não testado), não sobre esse incidente específico ter tido consequência.
+
 ## RAG-008 — Projetos conhecidos (ver `config/projects.yaml` para a lista real e atualizada)
 
 `VP CLICK` (`sfpnjwllcmentoocylow`) e `vprequisicao` (`vvgcrhtmzvssfdazkkzk`): inferidos como produção direta, mesmo domínio de `005_vpclick`/`003_requisicoes` no github-mcp — tratar como `critical` até confirmação em contrário.
